@@ -1,0 +1,330 @@
+worker: sftp-collect
+frontend: |
+  [
+    {
+      name: "connection_id",
+      helperText: "The remote connection to use.",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Enter Connection Id",
+      label: "Connection Id",
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Connection Id is required.',
+          value: true,
+        },
+          [ ValidationTypeEnums.MIN_LENGTH ]: {
+          message: 'Connection Id must contain at least 25 characters.',
+          value: 25,
+        },
+          [ ValidationTypeEnums.MAX_LENGTH ]: {
+          message: 'Connection Id must contain at most 30 characters.',
+          value: 30,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.source.custom.connection_id",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      name: "remote_path",
+      helperText: "The path on the remote system to scan for files.",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Enter Remote System Path",
+      label: "Remote System Path",
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Remote System Path is required.',
+          value: true,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.supplier.remote-dir",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      name: "filename_pattern",
+      helperText: "Filename pattern to match when collecting files.",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Enter Filename Pattern",
+      defaultValue: '*',
+      label: "Filename Pattern",
+      validation: { },
+      required: false,
+      id: "sftp.supplier.filename-pattern",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      name: "schedule",
+      helperText: "Schedule on which to collect files",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Enter Schedule Cron Expression",
+      defaultValue: '* * * * *',
+      label: "Schedule Cron Expression",
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Schedule Cron Expression is required.',
+          value: true,
+        },
+        }
+      },
+      required: false,
+      id: "sftp.source.custom.schedule",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      name: "duplicate_file_action",
+      helperText: "How should duplicate files be handled",
+      component: ComponentEnums.FormInputSelect,
+      placeholder: "Select Duplicate File Action",
+      label: "Duplicate File Action",
+      defaultValue: "ignore",
+      shrinkLabel: false,
+      validation: { },
+      required: false,
+      lookup: [
+        {
+          id: 1,
+          label: "Ignore",
+          value: "ignore"
+        },
+        {
+          id: 2,
+          label: "Collect and process",
+          value: "collect-and-process"
+        },
+        {
+          id: 3,
+          label: "Collect but skip processing",
+          value: "collect-but-skip-processing"
+        }
+      ],
+      id: "file.prevent-duplicates",
+      size: CommonSizeEnums.MEDIUM
+    },
+
+    {
+      name: "post_collect_action",
+      helperText: "What should be done with the original files on the remote system after successful collection",
+      component: ComponentEnums.FormInputSelect,
+      placeholder: "Select Post Collect Action",
+      label: "Select Post Collect Action",
+      defaultValue: "Ignore",
+      validation: { },
+      required: false,
+      shrinkLabel: false,
+      lookup: [
+        {
+          id: 1,
+          label: "Do nothing",
+          value: "do-nothing"
+        },
+        {
+          id: 2,
+          label: "Rename files",
+          value: "rename-files"
+        },
+        {
+          id: 3,
+          label: "Move files",
+          value: "move-files"
+        },
+        {
+          id: 4,
+          label: "Delete files",
+          value: "delete-files"
+        }
+      ],
+      size: CommonSizeEnums.MEDIUM
+    },
+    {
+      name: "rename_remote_file",
+      helperText: "Set a exppression to rename files on remote SFTP server",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Rename file expression",
+      label: "Rename file expression",
+      conditionalRender: {
+        'post_collect_action':
+          (value:
+            string | boolean): boolean => {
+                                            return value === 'rename-files';
+            },
+      },
+      defaultValue: "none",
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Rename file expression is required.',
+          value: true,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.supplier.rename-remote-files-to",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      name: "move_remote_file",
+      helperText: "Set a exppression to move files on remote SFTP server",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Move file expression",
+      label: "Move file expression",
+      conditionalRender: {
+        'post_collect_action':
+          (value:
+            string | boolean): boolean => {
+                                            return value === 'move-files';
+            },
+      },
+      defaultValue: "none",
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Move file expression is required.',
+          value: true,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.supplier.rename-remote-files-to-move",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      name: "delete_remote_file",
+      helperText: "Delete remote file",
+      component: ComponentEnums.FormInputCheckbox,
+      placeholder: "Delete remote file",
+      label: "Delete remote file",
+      conditionalRender: {
+        'post_collect_action':
+          (value:
+            string | boolean): boolean => {
+                                            return value === 'delete-files';
+            },
+      },
+      checked: true,
+      value: true,
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Delete flag is required.',
+          value: true,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.supplier.delete-remote-files",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      color: CommonColorEnums.PRIMARY,
+      component: ComponentEnums.FormInputToggleSwitch,
+      helperText: 'Whether flag files should be checked for before collection',
+      label: 'Flag File Check',
+      name: 'flag_file_enabled',
+      // Does not work well when its required
+      required: false,
+      size: CommonSizeEnums.MEDIUM,
+      validation: { },
+    },
+    {
+      name: "flag_file_pattern",
+      helperText: "Filename pattern to match when checking for flag files",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Enter Flag File Pattern",
+      label: "Flag File Check Pattern",
+      conditionalRender: {
+                           // render component if toggle switch is enabled (value = true)
+        flag_file_enabled:
+          (value:
+            string | boolean): boolean => {
+                                            return !!value;
+            },
+      },
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Flag file pattern is required.',
+          value: true,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.source.custom.flag-file-pattern",
+      size: CommonSizeEnums.MEDIUM,
+    },
+    {
+      name: 'retry_enabled',
+      color: CommonColorEnums.PRIMARY,
+      component: ComponentEnums.FormInputToggleSwitch,
+      helperText: 'Whether a file collection should be retried in the event of an error',
+      label: 'Retry When Error',
+      // Does not work well when its required
+      required: false,
+      size: CommonSizeEnums.MEDIUM,
+      validation: { },
+    },
+    {
+      name: "retry_count",
+      helperText: "How many times file collection should be retried in the event of an error",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Enter Retry Count",
+      label: "Retry Count",
+      conditionalRender: {
+        retry_enabled:
+          (value:
+            string | boolean): boolean => {
+                                            return !!value;
+            },
+      },
+      type: InputTextTypeEnums.NUMBER,
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Connection Id is required.',
+          value: true,
+        },
+          [ ValidationTypeEnums.MIN ]: {
+          message: 'Retry count must start with 1.',
+          value: 1,
+        },
+          [ ValidationTypeEnums.MAX ]: {
+          message: 'Retry count must not be greater than 10.',
+          value: 10,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.source.custom.retry.retry-count",
+      size: CommonSizeEnums.SMALL,
+    },
+    {
+      name: "retry_interval",
+      helperText: "How often file collection should be retried in the event of an error. Interval will be value and time unit combination, such as 10s for 10 seconds or 30m for 30 minutes. Allowed units are seconds, minutes and hours.",
+      component: ComponentEnums.FormInputText,
+      placeholder: "Enter Retry Interval",
+      label: "Retry Interval",
+      conditionalRender: {
+        retry_enabled:
+          (value:
+            string | boolean): boolean => {
+                                            return !!value;
+            },
+      },
+      validation: {
+        onIncrementalChange: {
+          [ ValidationTypeEnums.REQUIRED ]: {
+          message: 'Retry Interval is required.',
+          value: true,
+        },
+        }
+      },
+      required: true,
+      id: "sftp.source.custom.retry.retry-interval",
+      size: CommonSizeEnums.SMALL,
+    }
+  ]
